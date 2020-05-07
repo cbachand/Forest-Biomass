@@ -721,7 +721,9 @@ CalcSumBiomass <- function (data){
 # Given DATA, CODEFILE, and DIR, runs all other helper functions 
 # and returns DATA file containing all Biomass and Cubic 
 # Volume calculations, as well as another column containing 
-# estimated Above Ground Living Biomass "AGL.MG.ha" in Mg/ha. 
+# estimated Above Ground Living Biomass "AGL.MG.ha" in Mg/ha
+# if original data table coontains a column labeled "TPH" 
+# containing TPH measurements 
 
 CalcPieces <-function (data, codefile, dir = ""){
   mergefile <- ParseData(data, codefile, dir)
@@ -731,7 +733,9 @@ CalcPieces <-function (data, codefile, dir = ""){
   see4<-CalcBranchBiomass(see3)
   see5<-CalcSumBiomass(see4)
   ###Convert to AGL per tree in Mg/ha
-  see5$AGL.Mg.ha<-see5$Sumbiom_kg/1e3*see5$TPH
+  if ("TPH" %in% colnames(see5)) {
+    see5$AGL.Mg.ha<-see5$Sumbiom_kg/1e3*see5$TPH
+  }
   see5
 } 
 
@@ -751,6 +755,10 @@ CalcPieces <-function (data, codefile, dir = ""){
 # DIR is your working directory path. Leave blank if you are running
 # this program from your working directory. 
 
+# OUTPUT is what you would like to name your output files. Tree
+# biomass file will be named output_tree, and plot biomass file 
+# will be named output_plot. Default is 'XXXX_biomass"
+
 # DATA file must be a CSV file containing at least the following: 
 # 1. A column named "Species" or "SPP4" containing the species code 
 # for each tree
@@ -762,16 +770,22 @@ CalcPieces <-function (data, codefile, dir = ""){
 # RETURNS a new table containing original tree information along 
 # with equation information and tree biomass data. Writes this
 # table into DIR ("XXXX_tree_biomass.csv"). 
+
 # If provided DATA includes a "Plot" column and a "Live" column 
 # (binary indicator for tree is living), then function also writes
 # a file containing plot biomass data and summary statistics into 
 # DIR ("XXX_tree_biomass.csv"). 
 
+# If provided DATA includes a "TPH" column, then AGL in mg/ha calcualtions
+# will be included in returned table. 
 
-Biomass<-function(data, codefile = "BECI EQN LUT.csv", dir = "") { 
+
+Biomass<-function(data, codefile = "BECI EQN LUT.csv", dir = "", output = "XXXX_biomass") { 
   require (tidyverse)
   require(readxl)
+  # Runs all previously defined biomass and cubic volumn equatins 
   AGL.tree<-CalcPieces(data, codefile, dir)
+  # Creates a file containing plot summary statistics if possible
   if(("Plot" %in% colnames(AGL.tree)) && "Live" %in% colnames(AGL.tree)) {
     AGL.plot<-AGL.tree%>%
       group_by (Plot,Live)%>%
@@ -782,21 +796,24 @@ Biomass<-function(data, codefile = "BECI EQN LUT.csv", dir = "") {
     mean(AGL.plot$AGL_Mg_ha)
     min(AGL.plot$AGL_Mg_ha)
     max(AGL.plot$AGL_Mg_ha)
-    write_csv(AGL.plot, "XXXX_plot_biomass.csv")
+    # Writes file containing plot summary statistics into directory
+    write_csv(AGL.plot, paste(output, "_plot", ".csv", sep = ""))
   }
-  write_csv(AGL.tree, "XXXX_tree_biomass.csv")
+  # Writes file containing tree biomass information into directory 
+  write_csv(AGL.tree, paste(output, "_tree", ".csv", sep = ""))
   return(AGL.tree)
 }
 
 
-data = Biomass("SEKI_biomass_data.csv")
+data = Biomass("test data 62.csv", output = "data_62")
 
 #################################
 ######## DIAGNOSTICS ############
 #################################
 
-# Plots Abovoe Ground Living Biomass vs. Total Biomass given DATA,
-# which is the table returned by BIOMASS 
+# Plots Above Ground Living Biomass vs. Total Biomass given DATA,
+# which is the table returned by BIOMASS. Needs original table to have
+# TPH  column
 
 BIOM_vs_AGL <- function(DATA) {
   return(qplot(Sumbiom_kg,AGL.Mg.ha, data=AGL.tree))
@@ -806,12 +823,16 @@ AGL.tree = Biomass("SEKI_biomass_data.csv", "BECI EQN LUT.csv")
 
 # Plots Above Ground Living Biomass vs. Total Biomass for 
 # each tree species, given DATA, which is the table returned by
-# the BIOMASS function. 
+# the BIOMASS function. Needs original table to have TPH column
 
 BIOM_AGL_by_Species <- function(DATA) {
   require(lattice)
   xyplot (Sumbiom_kg~AGL.Mg.ha|SPP6, data=AGL.tree)
 }
+
+
+
+
 
 
 
