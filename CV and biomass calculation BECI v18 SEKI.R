@@ -59,28 +59,9 @@ ParseData <- function(data, codefile, dir = "") {
 # cubic volumn for each tree, in cubic feet.
 
 CalcCVTS<-function(data){
-  subset.eq3 <- subset(data, data$Eq_CV == 3) 
-  subset.eq5 <- subset(data, data$Eq_CV == 5) 
-  subset.eq6 <- subset(data, data$Eq_CV == 6) 
-  subset.eq8 <- subset(data, data$Eq_CV == 8) 
-  subset.eq16 <- subset(data, data$Eq_CV == 16)
-  subset.eq17 <- subset(data, data$Eq_CV == 17)
-  subset.eq18 <- subset(data, data$Eq_CV == 18) 
-  subset.eq19 <- subset(data, data$Eq_CV == 19) 
-  subset.eq20 <- subset(data, data$Eq_CV == 20) 
-  subset.eq21 <- subset(data, data$Eq_CV == 21)
-  subset.eq23 <- subset(data, data$Eq_CV == 23) 
-  subset.eq24 <- subset(data, data$Eq_CV == 24)
-  subset.eq26 <- subset(data, data$Eq_CV == 26)
-  subset.eq28 <- subset(data, data$Eq_CV == 28)
-  subset.eq32 <- subset(data, data$Eq_CV == 32)
-  subset.eq33 <- subset(data, data$Eq_CV == 33)
-  subset.eq34 <- subset(data, data$Eq_CV == 34)
-  subset.eq37 <- subset(data, data$Eq_CV == 37)
-  subset.eq38 <- subset(data, data$Eq_CV == 38)
-  subset.eq40 <- subset(data, data$Eq_CV == 40)
-  subset.eq42 <- subset(data, data$Eq_CV == 42)
-  subset.eq43 <- subset(data, data$Eq_CV == 43)
+  for (i in  c(3, 5, 6, 8, 16, 17, 18, 19, 20, 21, 23, 24, 26, 28, 32, 33, 34, 37, 38, 40, 42, 43)) {
+    assign(paste("subset.eq", i, sep = ""), subset(data, data$Eq_CV == i))
+  }
   
   #Helper function that calculates TMP_DBH, BA, and BA_TMP for small trees (trees < 6 inches in DBH)
   SmallBATMP<-function(table) {
@@ -583,27 +564,12 @@ CalcBarkBiomass<-function (data){
   
   BarkSet<-unique(data$Eq_bark)
   
-  #Subset by equation number (0,1,2,4,5,8,9,10,11,12,13,14,15, 16,17,18,20,21)
+   
+  for (i in  c(0,1,2,4,5,8,9,10,11,12,13,14,15, 16,17,18,20,21)) {
+    assign(paste("bark", i, sep = ""), subset(data, data$Eq_bark == i))
+  }
   #If statement includes only branch equations present
-  
-  bark0 <- subset(data, data$Eq_bark == 0)
-  bark1 <- subset(data, data$Eq_bark == 1)
-  bark2 <- subset(data, data$Eq_bark == 2)
-  bark4 <- subset(data, data$Eq_bark == 4)
-  bark5 <- subset(data, data$Eq_bark == 5)
-  bark8 <- subset(data, data$Eq_bark == 8)
-  bark9 <- subset(data, data$Eq_bark == 9)
-  bark10 <- subset(data, data$Eq_bark == 10)
-  bark11 <- subset(data, data$Eq_bark == 11)
-  bark12 <- subset(data, data$Eq_bark == 12)
-  bark13 <- subset(data, data$Eq_bark == 13)
-  bark14 <- subset(data, data$Eq_bark == 14)
-  bark15 <- subset(data, data$Eq_bark == 15)
-  bark16 <- subset(data, data$Eq_bark == 16)
-  bark17 <- subset(data, data$Eq_bark == 17)
-  bark18 <- subset(data, data$Eq_bark == 18)
-  bark20 <- subset(data, data$Eq_bark == 20)
-  bark21 <- subset(data, data$Eq_bark == 21)
+
   
   #DBH in cm and HT in m
   
@@ -656,21 +622,9 @@ CalcBarkBiomass<-function (data){
 
 CalcBranchBiomass<-function (data){
   BranchSet<-unique(data$Eq_branch)
-  #Subset by equation number (0,1,3,6,7,8,9,10,11,12,13,14,16,17)
-  branch0 <- subset(data, data$Eq_branch == 0)
-  branch1 <- subset(data, data$Eq_branch == 1)
-  branch3 <- subset(data, data$Eq_branch == 3)
-  branch6 <- subset(data, data$Eq_branch == 6)
-  branch7 <- subset(data, data$Eq_branch == 7)
-  branch8 <- subset(data, data$Eq_branch == 8)
-  branch9 <- subset(data, data$Eq_branch == 9)
-  branch10 <- subset(data, data$Eq_branch == 10)
-  branch11 <- subset(data, data$Eq_branch == 11)
-  branch12 <- subset(data, data$Eq_branch == 12)
-  branch13 <- subset(data, data$Eq_branch == 13)
-  branch14 <- subset(data, data$Eq_branch == 14)
-  branch16 <- subset(data, data$Eq_branch == 16)
-  branch17 <- subset(data, data$Eq_branch == 17)
+  for (i in  c(0,1,3,6,7,8,9,10,11,12,13,14,16,17)) {
+    assign(paste("branch", i, sep = ""), subset(data, data$Eq_branch == i))
+  }
   #Eq 0
   if( 0 %in% BranchSet)branch0$branchbiom_kg<-0
   #Eq 1
@@ -832,7 +786,7 @@ BIOM_AGL_by_Species <- function(DATA) {
 
 
 
-
-
+for (i in  c(0,1,3,6,7,8,9,10,11,12,13,14,16,17)) {
+  paste("branch", i, sep = "") = i}
 
 
