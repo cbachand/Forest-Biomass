@@ -1,0 +1,36 @@
+SPP4,SPP6,FIA Spp Code,Species common name,Eq_CV,SG,Density,Eq_bark,Eq_branch
+PSME,PSME,202,Douglas-fir,3,0.45,28.08,8,6
+PIJE,PIJE,116,Jeffrey pine,5,0.37,23.09,9,7
+PIPO,PIPO,122,Ponderosa pine,5,0.38,23.71,9,7
+PISA,PISA,127,Foothill pine,5,0.4,24.96,9,7
+TSHE,TSHE,263,Western hemlock,6,0.42,26.21,15,12
+TOCA,TOCA,251,California nutmeg,8,0.41,25.58,13,10
+TABR,TABR,231,Pacific yew,8,0.6,37.44,13,10
+PICO,PICO,108,Lodgepole pine,16,0.38,23.71,14,11
+UNCO,UNCO,298,Unknown conifer,17,0.36,22.46,21,17
+ABMA,ABMA,20,California red fir,18,0.36,22.46,4,3
+CADE,CADE,81,Incense cedar,19,0.35,21.84,12,10
+PILA,PILA,117,Sugar pine,20,0.34,21.22,10,8
+PIMO,PIMO,119,Western white pine,20,0.36,22.46,11,9
+JUOC,JUOC,64,Western juniper ,21,0.45,28.08,16,13
+ABCO,ABCO,15,White fir,23,0.37,23.09,1,1
+SESE,SESE,211,Redwood,24,0.36,22.46,13,10
+SEGI,SEGI,212,Giant sequoia,24,0.34,21.22,13,10
+SESE,SESE.l,211,Redwood,24,0.36,22.46,17,10
+SEGI,SEGI.l,212,Giant sequoia,24,0.34,21.22,17,10
+CONU,CONU,492,Pacific dogwood,26,0.58,36.19,0,0
+ALRH,ALRH,352,White alder,26,0.37,23.09,20,16
+POTR,POTR,746,Quaking aspen,28,0.35,21.84,18,14
+UMCA,UMCA,981,Bay laurel,33,0.51,31.82,0,0
+LIDE,LIDE,631,Tan oak,34,0.58,36.19,0,0
+ACMA,ACMA,312,Bigleaf maple,37,0.44,27.46,0,0
+QUKE,QUKE,818,California black oak,38,0.51,31.82,0,0
+ARME,ARME,361,Pacific madrone,40,0.58,36.19,0,0
+QUCH,QUCH,805,Canyon live oak,42,0.7,43.68,0,0
+QUAG,QUAG,801,California live oak,43,0.59,36.82,0,0
+CHCH,CHCH,431,Golden chinkapin,32,0.42,26.21,0,0
+ABPR,ABPR,22,Noble fir,18,0.37,23.09,5,3
+ABGR,ABGR,17,Grand fir,23,0.35,21.84,2,1
+TSME,TSME,264,Mountain hemlock,17,0.42,26.21,21,17
+UNHA,UNHA,998,Unknown hardwood,26,0.51,31.82,20,16
+SASP,SASP,920,Willow species,40,0.36,22.46,0,0
