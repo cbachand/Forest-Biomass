@@ -509,6 +509,7 @@ CalcCVTS<-function(data){
   
   #Re-combine into single data frame
   #set k equal to the number of columns in data
+  #Combines data for small trees 
   k<-dim(data)[2]
   data.small <- rbind(small3, small5, small16, small18, small19, small20, small23)
   if (dim(data.small)[1]>0){
@@ -516,12 +517,14 @@ CalcCVTS<-function(data){
     colnames(data.small) [k+1] <- "CVTS_ft"
   } # end if data.small
   
+  # Combines data for large trees
   data.large <- rbind(large3, large5, large16, large18, large19, large20, large23)
   if (dim(data.large)[1]>0){
     data.large <- cbind(data.large[,1:k],data.large[,"CVTS_ft"])
     colnames(data.large) [k+1] <- "CVTS_ft"
   } # end if data.large
   
+  # Combines data for trees with one-step calculations
   data.1step<-rbind(subset.eq6,subset.eq8,subset.eq17,subset.eq21,subset.eq24,subset.eq26,subset.eq28,
                         subset.eq32,subset.eq33,subset.eq34,subset.eq37, subset.eq38,subset.eq40, subset.eq42, subset.eq43)
   if (dim(data.1step)[1]>0){
@@ -553,18 +556,16 @@ CalcStemBiomass<-function (data){
 
 CalcBarkBiomass<-function (data){
   
+  # Identifies all bark equations relevant to trees in DATA
   BarkSet<-unique(data$Eq_bark)
   
-   
-  for (i in  c(0,1,2,4,5,8,9,10,11,12,13,14,15, 16,17,18,20,21)) {
+  # Separates trees by their bark biomass equation
+  for (i in  BarkSet) {
     assign(paste("bark", i, sep = ""), subset(data, data$Eq_bark == i))
   }
-  #If statement includes only branch equations present
-
   
-  #DBH in cm and HT in m
-  
-  # No separate branch and biomass calcs for hardwoods. Components included in total. (eq. 0)
+  # No separate branch and biomass calculationss for hardwoods. 
+  # Components included in total biomass calculation. (eq. 0)
   if( 0 %in% BarkSet)bark0$barkbiom_kg<-0 
   
   #Bark biomass for White Firs (eq. 1)
@@ -591,33 +592,34 @@ CalcBarkBiomass<-function (data){
   #Bark biomass for Western White Pines (eq. 11)
   if( 11 %in% BarkSet)bark11$barkbiom_kg <- 1.2 + 11.2 * (bark11$DBH_cm/100)^2 * bark11$Ht_m 
   
-  #Eq 12
+  #Bark biomass for Incense Cedars (eq. 12)
   if( 12 %in% BarkSet)bark12$barkbiom_kg <- exp(-13.3146 + 2.8594 * log(bark12$DBH_cm))*1000
   
-  #Eq 13
+  #Bark biomass for California Nutmeg, Pacific Yew, small redwoods, and small giant Sequoias (eq. 13) 
   if( 13 %in% BarkSet)bark13$barkbiom_kg <- 0.336 + 0.00058 * bark13$DBH_cm^2 * bark13$Ht_m
   
-  #Eq 14
+  #Bark biomass for Lodgepole Pines (eq. 14)
   if( 14 %in% BarkSet)bark14$barkbiom_kg <- 3.2 + 9.1 * (bark14$DBH_cm/100)^2 * bark14$Ht_m
   
-  #Eq 15
+  #Bark biomass for Western Hemlock (eq. 15)
   if( 15 %in% BarkSet)bark15$barkbiom_kg <- exp(-4.371 + 2.259*log(bark15$DBH_cm))
   
-  #Eq 16
+  #Bark biomass for Western Juniper(eq. 16)
   if( 16 %in% BarkSet)bark16$barkbiom_kg <- exp(-10.175 + 2.6333 * log(bark16$DBH_cm * pi))
   
-  #Eq 17
+  #Bark biomass for large Redwoods and large Giant Sequoias (eq. 17)
   if( 17 %in% BarkSet)bark17$barkbiom_kg <- exp(7.189689 + 1.5837 * log(bark17$DBH_cm)) / 1000
   
-  #Eq 18
+  #Bark biomass for Quaking Aspen (eq. 18)
   if( 18 %in% BarkSet)bark18$barkbiom_kg <- 1.3 + 27.6 * (bark18$DBH_cm/100)^2 * bark18$Ht_m
   
-  #Eq 20
+  #Bark biomass for White Alder and Unknown Hardwoods (eq.20)
   if( 20 %in% BarkSet)bark20$barkbiom_kg <- exp(-4.6424 + 2.4617 * log(bark20$DBH_cm))
   
-  #Eq 21
+  #Bark biomass for Mountain Hemlock and Unknown Conifers (eq. 21)
   if( 21 %in% BarkSet)bark21$barkbiom_kg <- 0.9 + 27.4 * (bark21$DBH_cm/100)^2 * bark21$Ht_m
   
+  #Combines all bark biomass data
   data <- rbind(bark0,bark1,bark2,bark4,bark5,bark8,bark9,bark10,bark11,bark12,bark13,bark14,bark15,bark16,bark17,bark18,bark20,bark21)
   
   return (data)
@@ -629,39 +631,61 @@ CalcBarkBiomass<-function (data){
 # bark biomass in kg. 
 
 CalcBranchBiomass<-function (data){
+  #Identifies all branch equations used in DATA
   BranchSet<-unique(data$Eq_branch)
-  for (i in  c(0,1,3,6,7,8,9,10,11,12,13,14,16,17)) {
+  
+  #Separates tress by their bark equation
+  for (i in  BranchSet) {
     assign(paste("branch", i, sep = ""), subset(data, data$Eq_branch == i))
   }
-  #Eq 0
+  #No separate branch equations for hardwoods. Branch biomass is included 
+  #in total biomass. (eq. 0)
   if( 0 %in% BranchSet)branch0$branchbiom_kg<-0
-  #Eq 1
+  
+  #Branch biomass for White Fir and Grand Fir
   if( 1 %in% BranchSet)branch1$branchbiom_kg <- 13.0 +12.4 * (branch1$DBH_cm/100)^2 * branch1$Ht_m
-  #Eq3
+ 
+  #Branch biomass for California Red Fir and Noble Firs (eq. 3) 
   if( 3 %in% BranchSet)branch3$branchbiom_kg <- exp(-4.1817 + 2.3324 * log(branch3$DBH_cm))
-  #Eq 6
+  
+  #Branch biomass for Douglas Fir (eq. 6) 
   if( 6 %in% BranchSet)branch6$branchbiom_kg <- exp(-3.6941 + 2.1382 * log(branch6$DBH_cm))
-  #Eq 7
+  
+  #Branch biomass for Jeffrey pine, Ponderosa pine and Foothill pine (eq. 7)
   if( 7 %in% BranchSet)branch7$branchbiom_kg <- exp(-4.1068 + 1.5177 * log(branch7$DBH_cm) + 1.0424 * log(branch7$Ht_m))
-  #Eq 8
+  
+  #Branch biomass for Sugar pine (eq. 8)
   if( 8 %in% BranchSet)branch8$branchbiom_kg <- exp(-7.637 + 3.3648 * log(branch8$DBH_cm))
-  #Eq 9
+  
+  #Branch biomass for Western White pine (eq. 9)
   if( 9 %in% BranchSet)branch9$branchbiom_kg <- 9.5 + 16.8 * (branch9$DBH_cm/100)^2 * branch9$Ht_m
-  #Eq 10
+  
+  #Branch biomass for California nutmeg, Pacific yew, Incense cedar
+  #large and small Redwoods and Giant Sequoias.
   if( 10 %in% BranchSet)branch10$branchbiom_kg <- 0.199 + 0.00381 * branch10$DBH_cm^2 * branch10$Ht_m 
-  #Eq 11
+  
+  #Branch biomass for Lodge pole pine (eq. 11)
   if( 11 %in% BranchSet)branch11$branchbiom_kg <- 7.8 + 12.3 * (branch11$DBH_cm/100)^2 * branch11$Ht_m
-  #Eq 12
+  
+  #Branch biomass for Western hemlock (eq. 12) 
   if( 12 %in% BranchSet)branch12$branchbiom_kg <- exp(-4.570+2.271*log(branch12$DBH_cm))
-  #Eq 13
+  
+  #Branch biomass for Western juniper (eq. 13)
   if( 13 %in% BranchSet)branch13$branchbiom_kg <- exp(-7.2775 + 2.3337 * log(branch13$DBH_cm * pi))
-  #Eq 14
+  
+  #Branch biomass for Quaking aspen (eq. 14)
   if( 14 %in% BranchSet)branch14$branchbiom_kg <- 1.7 + 26.2 * (branch14$DBH_cm/100)^2 * branch14$Ht_m
-  #Eq 16
-  BF <- (exp(-4.5648 + 2.6232 * log (branch16$DBH_cm)))* (1/(2.7638 + 0.062 * branch16$DBH_cm^1.3364))
-  if( 16 %in% BranchSet)branch16$branchbiom_kg <-exp(-4.5648 + 2.6232 * log (branch16$DBH_cm))-BF
-  #Eq 17
+  
+  #Branch biomass for White alder and unknown hardwoods (eq. 16)
+  if( 16 %in% BranchSet){
+    BF <- (exp(-4.5648 + 2.6232 * log (branch16$DBH_cm)))* (1/(2.7638 + 0.062 * branch16$DBH_cm^1.3364))
+    branch16$branchbiom_kg <-exp(-4.5648 + 2.6232 * log (branch16$DBH_cm))-BF
+  }
+  
+  #Branch biomass for Unknown conifers and Mountain hemlock (eq. 17)
   if( 17 %in% BranchSet)branch17$branchbiom_kg <- exp(-5.2581 + 2.6045*log(branch17$DBH_cm))
+  
+  #Cobmines branch biomass data 
   data <- rbind(branch0,branch1,branch3,branch6,branch7,branch8,branch9,branch10,branch11,branch12,branch13,branch14,branch16,branch17)
   return(data)
 } #end of CalcBranchBiomass
@@ -673,7 +697,9 @@ CalcBranchBiomass<-function (data){
 # ("Sumbiom_kg") and lbs ("Sumbiom_lbs").
 
 CalcSumBiomass <- function (data){
+  #Sums all biomass pieces 
   data$Sumbiom_kg <- data$Stembiom_kg + data$barkbiom_kg + data$branchbiom_kg
+  #Coverts to lbs
   data$Sumbiom_lbs <- data$Sumbiom_kg*2.2046226
 
   return(data)
