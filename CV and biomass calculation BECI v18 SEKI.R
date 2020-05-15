@@ -28,28 +28,27 @@
 # common name, etc.) for each tree. 
 
 ParseData <- function(data, codefile, dir = "") {
+  #set's working directory to dir 
   if(!(dir == "")){setwd(dir)}
   infile <- read_csv(data) 
   codefile <- read_csv(codefile)
+  #performs unit conversions where necessary
   if(!("Ht_ft" %in% colnames(infile))) {infile$Ht_ft <- infile$Ht_m/0.3048
   } else if (!("Ht_m" %in% colnames(infile))) {infile$Ht_m<-infile$Ht_ft*0.3048
   }
   if(!("DBH_in" %in% colnames(infile))) {infile$DBH_in <- infile$DBH_cm/2.54
   } else if (!("DBH_cm" %in% colnames(infile))) {infile$DBH_cm<-infile$DBH_in*2.54
   }
-  if(!("DBH_in" %in% colnames(infile))) {infile$DBH_in <- infile$DBH_cm/2.54
-  } else if (!("DBH_cm" %in% colnames(infile))) {infile$DBH_cm<-infile$DBH_in*2.54
-  }
   if(!("SPP4" %in% colnames(infile))) {infile$SPP4<-infile$Species
   }
+  #Identifies redwoods < 100 cm DBH
   redtest<-infile$SPP4 =="SEGI" | infile$SPP4 == "SESE"          
   dbhtest<-infile$DBH_cm>100                                     
   test<-redtest&dbhtest
   codefile$SPP4 = NULL 
   infile<-mutate(infile, SPP6 = as.factor(if_else(test, paste(SPP4,".l",sep=""),SPP4)))
-  names (codefile)
+  #merges code file with datafile
   mergefile<-merge(infile, codefile, by.x = "SPP6",by.y = "SPP6")
-  
   return(mergefile)
 }
 
@@ -59,10 +58,10 @@ ParseData <- function(data, codefile, dir = "") {
 # cubic volumn for each tree, in cubic feet.
 
 CalcCVTS<-function(data){
+  #Separates trees according to their equation number
   for (i in  c(3, 5, 6, 8, 16, 17, 18, 19, 20, 21, 23, 24, 26, 28, 32, 33, 34, 37, 38, 40, 42, 43)) {
     assign(paste("subset.eq", i, sep = ""), subset(data, data$Eq_CV == i))
   }
-  
   #Helper function that calculates TMP_DBH, BA, and BA_TMP for small trees (trees < 6 inches in DBH)
   SmallBATMP<-function(table) {
     table$TMP_DBH <- 6.0
@@ -70,10 +69,10 @@ CalcCVTS<-function(data){
     table$BA_TMP <- (6^2)*0.005454154
     return(table)
   } 
-
-  #Eq 3 
+  #Small trees (< 6 inch DBH)
+  #Calculates cubic volumn for small Dougals firs using equation 3
+  
   small3 <- subset(subset.eq3, subset.eq3$DBH_in < 6.0)
-
   if (dim(small3)[1]>0) {
     small3 = SmallBATMP(small3)
     small3$CF4_TMPcalc <- 0.248569 + 0.0253524 * (small3$Ht_ft/small3$TMP_DBH) - 0.0000560175 * (small3$Ht_ft^2/small3$TMP_DBH)
@@ -102,10 +101,8 @@ CalcCVTS<-function(data){
     small3$TERM <- ((1.033 * (1.0 + 1.382937 * exp(-4.015292 * (small3$DBH_in/10.0)))) * (small3$BA + 0.087266) - 0.174533)
     small3$CVTS_ft <- small3$TARIF * small3$TERM
   } #end if small Eq 3
-  
-  #Eq 5 
+  #Calculates CV for small Jefferey, Ponderosa and Foothill pines using equation 5
   small5 <- subset(subset.eq5, subset.eq5$DBH_in < 6.0)
-
   if (dim(small5)[1]>0){
     small5 = SmallBATMP(small5)
     small5$CF4_TMPcalc <- 0.402060 - 0.899914 * (1/small5$TMP_DBH)
@@ -136,7 +133,7 @@ CalcCVTS<-function(data){
     small5$CVTS_ft <- small5$TARIF * small5$TERM
   } #end if small Eq 5
 
-  #Eq 16 
+  #Calculates CV for small Lodgepole pines using equation 16
   small16 <- subset(subset.eq16, subset.eq16$DBH_in < 6.0)
   if (dim(small16)[1]>0){
     small16 = SmallBATMP(small16)
@@ -165,11 +162,9 @@ CalcCVTS<-function(data){
     }
     small16$TERM <- ((1.033 * (1.0 + 1.382937 * exp(-4.015292 * (small16$DBH_in/10.0)))) * (small16$BA + 0.087266) - 0.174533)
     small16$CVTS_ft <- small16$TARIF * small16$TERM
-  } # end if small Eq 16
-
-  #Eq 18
+  } # end of small Eq 16
+  #Calculates CV for small California Red Firs and Noble Firs using equation 18
   small18 <- subset(subset.eq18, subset.eq18$DBH_in < 6.0)
-
   if (dim(small18)[1]>0) {
     small18 = SmallBATMP(small18)
     small18$CF4_TMPcalc <- 0.231237 + 0.028176 * (small18$Ht_ft/small18$TMP_DBH)
@@ -197,11 +192,10 @@ CalcCVTS<-function(data){
     }
     small18$TERM <- ((1.033 * (1.0 + 1.382937 * exp(-4.015292 * (small18$DBH_in/10.0)))) * (small18$BA + 0.087266) - 0.174533)
     small18$CVTS_ft <- small18$TARIF * small18$TERM
-  } # end if small Eq 18
+  } # end of small Eq 18
 
-  #Eq 19 
+  #Calculates CV for small Incense Cedars using equation 19
   small19 <- subset(subset.eq19, subset.eq19$DBH_in < 6.0)
-
   if (dim(small19)[1]>0){
     small19 = SmallBATMP(small19)
     small19$CF4_TMPcalc <- 0.225786 + 4.44236 * (1/small19$Ht_ft)
@@ -229,8 +223,7 @@ CalcCVTS<-function(data){
     small19$TERM <- ((1.033 * (1.0 + 1.382937 * exp(-4.015292 * (small19$DBH_in/10.0)))) * (small19$BA + 0.087266) - 0.174533)
     small19$CVTS_ft <- small19$TARIF * small19$TERM
   } # end if small Eq 19
-
-  #Eq 20 
+  #Calculates CV for small sugar pines and small western white pines using equation 20
   small20 <- subset(subset.eq20, subset.eq20$DBH_in < 6.0)
 
   if (dim (small20)[1]>0){
@@ -260,11 +253,10 @@ CalcCVTS<-function(data){
     }
     small20$TERM <- ((1.033 * (1.0 + 1.382937 * exp(-4.015292 * (small20$DBH_in/10.0)))) * (small20$BA + 0.087266) - 0.174533)
     small20$CVTS_ft <- small20$TARIF * small20$TERM
-  } # end if small Eq 20
+  } # end of small Eq 20
 
-  #Eq 23 
+  #Calculates CV for small white firs and grand firs using equation 23
   small23 <- subset(subset.eq23, subset.eq23$DBH_in < 6.0)
-
   if (dim(small23)[1]>0){
     small23 = SmallBATMP(small23)
     small23$CF4_TMPcalc <- 0.299039 + 1.91272 * (1/small23$Ht_ft) + 0.0000367217 * (small23$Ht_ft^2/small23$TMP_DBH)
@@ -295,8 +287,8 @@ CalcCVTS<-function(data){
   } #end if small Eq 23 
 
 
-# Trees >6 inches
-#Eq 3 
+# Large Trees (>6 inches DBH)
+#Calculates CV for large Douglas firs using equation 3
   large3 <- subset(subset.eq3, subset.eq3$DBH_in >= 6.0)
   if (dim(large3)[1]>0){
     large3$BA <- (large3$DBH_in^2)*0.005454154
@@ -320,7 +312,7 @@ CalcCVTS<-function(data){
     large3$CVTS_ft <- (large3$CV4 * large3$TERM)/ (large3$BA - 0.087266)
   } #end if large Eq 3
 
-#Eq 5 
+#Calculates CV for large Jefferey, Ponderosa, and white pines (eq. 5)
   large5 <- subset(subset.eq5, subset.eq5$DBH_in >= 6.0)
   if (dim(large5)[1]>0){
     large5$BA <- (large5$DBH_in^2)*0.005454154
@@ -344,7 +336,7 @@ CalcCVTS<-function(data){
     large5$CVTS_ft <- (large5$CV4 * large5$TERM)/ (large5$BA - 0.087266)
   } #end if large Eq 5
 
-  #Eq 16 
+  #Calculates CV for large Lodgepole pines (eq. 16)
   large16 <- subset(subset.eq16, subset.eq16$DBH_in >= 6.0)
   if (dim(large16)[1]>0){
     large16$BA <- (large16$DBH_in^2)*0.005454154
@@ -366,9 +358,9 @@ CalcCVTS<-function(data){
     }
     large16$TERM <- ((1.033 * (1.0 + 1.382937 * exp(-4.015292 * (large16$DBH_in/10.0)))) * (large16$BA + 0.087266) - 0.174533)
     large16$CVTS_ft <- (large16$CV4 * large16$TERM)/ (large16$BA - 0.087266)
-  } #end if large Eq 16
+  } #end of large Eq 16
   
-  #Eq 18 
+  #Calculates CV for large California Red Firs and Noble Firs (Eq. 18)
   large18 <- subset(subset.eq18, subset.eq18$DBH_in >= 6.0)
   if (dim(large18)[1]>0){
   
@@ -393,7 +385,7 @@ CalcCVTS<-function(data){
     large18$CVTS_ft <- (large18$CV4 * large18$TERM) / (large18$BA - 0.087266)
     } #end if large Eq 18
     
-    #Eq 19 
+    #Calculates CV for large Incense Cedars (eq. 19)
     large19 <- subset(subset.eq19, subset.eq19$DBH_in >= 6.0)
     if (dim(large19)[1]>0){
     large19$BA <- (large19$DBH_in^2)*0.005454154
@@ -416,7 +408,7 @@ CalcCVTS<-function(data){
     large19$CVTS_ft <- (large19$CV4 * large19$TERM) / (large19$BA - 0.087266)
   } # end if large Eq 19
   
-  #Eq 20 
+  #Calculates CV for large Sugar pines and Western white pines (eq. 20)
   large20 <- subset(subset.eq20, subset.eq20$DBH_in >= 6.0)
   if (dim(large20)[1]>0){
     large20$BA <- (large20$DBH_in^2)*0.005454154
@@ -440,7 +432,7 @@ CalcCVTS<-function(data){
     large20$CVTS_ft <- (large20$CV4 * large20$TERM) / (large20$BA - 0.087266)
   } # end if large Eq 20
   
-  #Eq 23 
+  #Calculates CV for large White Firs and Grand Firs (eq. 23)
   large23 <- subset(subset.eq23, subset.eq23$DBH_in >= 6.0)
   if (dim(large23)[1]>0){
     large23$BA <- (large23$DBH_in^2)*0.005454154
@@ -467,51 +459,51 @@ CalcCVTS<-function(data){
   
   #For equations with 1 step
   
-  #Eq 6 (TSME)
+  #Calculates CV for Western Hemlock using equation 6
   subset.eq6$CVTS_ft <- 10^(-2.72170 + (2.00857*log10(subset.eq6$DBH_in)) + (1.08620*log10(subset.eq6$Ht_ft)) - (0.00568*subset.eq6$DBH_in))
   
-  #Eq 8 (TOCA)
+  #Calculates CV for California Nutmeg and Pacific Yew using equation 8
   subset.eq8$CVTS_ft <- 10^(-2.464614 + (1.701993*log10(subset.eq8$DBH_in)) + (1.067038*log10(subset.eq8$Ht_ft)))
   
-  #Eq 17 (UNCO)
+  #Calculates CV for Unknown Conifers and mountain hemlock using equation 17
   subset.eq17$CVTS_ft <- 0.001106485*(subset.eq17$DBH_in)^1.8140497*(subset.eq17$Ht_ft)^1.2744923
   
-  #Eq 21 (JUOC)
+  #Calculates CV for Western Juniper using equation 21
   subset.eq21$CVTS_ft <- 0.005454154 * (0.30708901 + 0.00086157622 * subset.eq21$Ht_ft - 0.0037255243 * subset.eq21$DBH_in * 
                                           (subset.eq21$Ht_ft/(subset.eq21$Ht_ft-4.5))) * subset.eq21$DBH_in^2 * subset.eq21$Ht_ft *
                                              (subset.eq21$Ht_ft/(subset.eq21$Ht_ft-4.5))^2
   
-  #Eq 24 (SESE,SESE.1, SEGI, SEGI.1)
+  #Calculates CV for large and small giant sequoias using equation 24
   subset.eq24$CVTS_ft <- exp(-6.2597 + 1.9967 * log(subset.eq24$DBH_in) + 0.9642 * log(subset.eq24$Ht_ft))
   
-  #Eq 26 (CONU)
+  #Calculates CV for Pacific Dogwood, White Alder, and unknown hardwoods, using equation 26
   subset.eq26$CVTS_ft <- 10^(-2.672775 + (1.920617*log10(subset.eq26$DBH_in)) + (1.074024*log10(subset.eq26$Ht_ft)))
   
-  #Eq 28 (POTR)
+  #Calculates CV for quaking aspen, using equation 28
   subset.eq28$CVTS_ft <- 10^(-2.635360 + (1.946034*log10(subset.eq28$DBH_in)) + (1.024793*log10(subset.eq28$Ht_ft)))
   
-  #Eq 32 (CHCH)
+  #Calculates CV for Golden Chinkapin using equation equation 32
   subset.eq32$CVTS_ft <- 0.0120372263*(subset.eq32$DBH_in)^2.02232*(subset.eq32$Ht_ft)^0.68638
   
-  #Eq 33 (UMCA)
+  #Calculates CV for Bay Laurel using equation 33
   subset.eq33$CVTS_ft <- 0.0057821322*(subset.eq33$DBH_in)^1.94553*(subset.eq33$Ht_ft)^0.88389
   
-  #Eq 34 (LIDE)
+  #Calculates CV for Tan Oak using equation 34
   subset.eq34$CVTS_ft <- 0.0058870024*(subset.eq34$DBH_in)^1.94165*(subset.eq34$Ht_ft)^0.86562
   
-  #Eq 37 (ACMA)
+  #Calculates CV for Bigleaf maple using equation 37
   subset.eq37$CVTS_ft <- 0.0101786350*(subset.eq37$DBH_in)^2.22462*(subset.eq37$Ht_ft)^0.575619
   
-  #Eq 38 (QUKE)
+  #Calculates CV for California Black Oak using equation 38
   subset.eq38$CVTS_ft <- 0.0070538108*(subset.eq38$DBH_in)^1.97437*(subset.eq38$Ht_ft)^0.85034
   
-  #Eq 40 (ARME)
+  #Calculates CV for Pacific Madrone and Willows using equation 40
   subset.eq40$CVTS_ft <- 0.0067322665*(subset.eq40$DBH_in)^1.96628*(subset.eq40$Ht_ft)^0.83458
   
-  #Eq 42 (QUCH)
+  #Calculates CV for Canyon Live Oak using equation 42
   subset.eq42$CVTS_ft <- 0.0097438611*(subset.eq42$DBH_in)^2.20527*(subset.eq42$Ht_ft)^0.61190
   
-  #Eq 43 (QUAG)
+  #Calculates CV for California Live Oak using equation 42
   subset.eq43$CVTS_ft <- 0.0065261029*(subset.eq43$DBH_in)^2.31958*(subset.eq43$Ht_ft)^0.62528
   
   
@@ -519,7 +511,6 @@ CalcCVTS<-function(data){
   #set k equal to the number of columns in data
   k<-dim(data)[2]
   data.small <- rbind(small3, small5, small16, small18, small19, small20, small23)
-  
   if (dim(data.small)[1]>0){
     data.small <- cbind(data.small[,1:k],data.small[,"CVTS_ft"])
     colnames(data.small) [k+1] <- "CVTS_ft"
@@ -573,40 +564,57 @@ CalcBarkBiomass<-function (data){
   
   #DBH in cm and HT in m
   
-  #Eq 0
-  if( 0 %in% BarkSet)bark0$barkbiom_kg<-0 # No separate branch and biomass calcs for hardwoods. Components included in total. 
-  #Eq 1
+  # No separate branch and biomass calcs for hardwoods. Components included in total. (eq. 0)
+  if( 0 %in% BarkSet)bark0$barkbiom_kg<-0 
+  
+  #Bark biomass for White Firs (eq. 1)
   if( 1 %in% BarkSet)bark1$barkbiom_kg <- exp(2.1069 + 2.7271 * log(bark1$DBH_cm)) / 1000
-  #Eq 2
+  
+  #Bark biomass for Grand Firs (eq. 2)
   if( 2 %in% BarkSet)bark2$barkbiom_kg <- 0.6 + 16.4 * (bark2$DBH_cm/100)^2 * bark2$Ht_m
-  #Eq 4
+  
+  #Bark biomass for California red fir (eq.4)
   if( 4 %in% BarkSet)bark4$barkbiom_kg <- exp(1.47146 + 2.8421 * log(bark4$DBH_cm)) / 1000
-  #Eq 5
+  
+  #Bark biomass for Noble firs (eq. 5)
   if( 5 %in% BarkSet)bark5$barkbiom_kg <- exp(2.79189 + 2.4313 * log(bark5$DBH_cm)) / 1000
-  #Eq 8
+  
+  #Bark biomas for Douglas firs (eq.8)
   if( 8 %in% BarkSet)bark8$barkbiom_kg <- exp(-4.3103 + 2.4300 * log(bark8$DBH_cm))
-  #Eq 9
+  
+  #Bark biomass for Jefferey pines, Ponderosa pines, and Foothill pines (eq. 9)
   if( 9 %in% BarkSet)bark9$barkbiom_kg <- exp(-3.6263 + 1.34077 * log(bark9$DBH_cm) + 0.8567 * log(bark9$Ht_m))
-  #Eq 10
+  
+  #Bark biomass for Sugar pines (eq. 10)
   if( 10 %in% BarkSet)bark10$barkbiom_kg <- exp(2.183174 + 2.6610 * log(bark10$DBH_cm)) / 1000
-  #Eq 11
+  
+  #Bark biomass for Western White Pines (eq. 11)
   if( 11 %in% BarkSet)bark11$barkbiom_kg <- 1.2 + 11.2 * (bark11$DBH_cm/100)^2 * bark11$Ht_m 
+  
   #Eq 12
   if( 12 %in% BarkSet)bark12$barkbiom_kg <- exp(-13.3146 + 2.8594 * log(bark12$DBH_cm))*1000
+  
   #Eq 13
   if( 13 %in% BarkSet)bark13$barkbiom_kg <- 0.336 + 0.00058 * bark13$DBH_cm^2 * bark13$Ht_m
+  
   #Eq 14
   if( 14 %in% BarkSet)bark14$barkbiom_kg <- 3.2 + 9.1 * (bark14$DBH_cm/100)^2 * bark14$Ht_m
+  
   #Eq 15
   if( 15 %in% BarkSet)bark15$barkbiom_kg <- exp(-4.371 + 2.259*log(bark15$DBH_cm))
+  
   #Eq 16
   if( 16 %in% BarkSet)bark16$barkbiom_kg <- exp(-10.175 + 2.6333 * log(bark16$DBH_cm * pi))
+  
   #Eq 17
   if( 17 %in% BarkSet)bark17$barkbiom_kg <- exp(7.189689 + 1.5837 * log(bark17$DBH_cm)) / 1000
+  
   #Eq 18
   if( 18 %in% BarkSet)bark18$barkbiom_kg <- 1.3 + 27.6 * (bark18$DBH_cm/100)^2 * bark18$Ht_m
+  
   #Eq 20
   if( 20 %in% BarkSet)bark20$barkbiom_kg <- exp(-4.6424 + 2.4617 * log(bark20$DBH_cm))
+  
   #Eq 21
   if( 21 %in% BarkSet)bark21$barkbiom_kg <- 0.9 + 27.4 * (bark21$DBH_cm/100)^2 * bark21$Ht_m
   
@@ -759,7 +767,7 @@ Biomass<-function(data, codefile = "BECI EQN LUT.csv", dir = "", output = "XXXX_
 }
 
 
-data = Biomass("test data 62.csv", output = "data_62")
+data = Biomass("Complicated Test Data.csv", output = "complicated")
 
 #################################
 ######## DIAGNOSTICS ############
@@ -786,7 +794,5 @@ BIOM_AGL_by_Species <- function(DATA) {
 
 
 
-for (i in  c(0,1,3,6,7,8,9,10,11,12,13,14,16,17)) {
-  paste("branch", i, sep = "") = i}
 
 
